@@ -1,8 +1,7 @@
 package timedelayqueue;
 
 import java.util.Comparator;
-import java.util.PriorityQueue;
-import java.util.UUID;
+import java.util.concurrent.PriorityBlockingQueue;
 
 // TODO: write a description for this class
 // TODO: complete all methods, irrespective of whether there is an explicit TODO or not
@@ -18,18 +17,35 @@ public class TimeDelayQueue {
         }
     }
 
+    private PriorityBlockingQueue<PubSubMessage> TDQ = new PriorityBlockingQueue<PubSubMessage>(11, new PubSubMessageComparator());
+
+    private final int queueDelay;
+
+    private int lifetimeMsgCount;
+
     /**
      * Create a new TimeDelayQueue
-     * @param delay the delay, in milliseconds, that the queue can tolerate, >= 0
-     */
+     *
+     * @param delay  the delay, in milliseconds, that the queue can tolerate, >= 0
+     **/
+
+
     public TimeDelayQueue(int delay) {
+        this.queueDelay = delay;
     }
 
     // add a message to the TimeDelayQueue
     // if a message with the same id exists then
     // return false
     public boolean add(PubSubMessage msg) {
-        return false;
+
+        boolean addSuccess = TDQ.add(msg);
+
+        if(addSuccess) {
+            lifetimeMsgCount++;
+        }
+
+        return addSuccess;
     }
 
     /**
@@ -38,13 +54,24 @@ public class TimeDelayQueue {
      * @return
      */
     public long getTotalMsgCount() {
-        return -1;
+        return lifetimeMsgCount;
     }
 
     // return the next message and PubSubMessage.NO_MSG
     // if there is ni suitable message
-    public PubSubMessage getNext() {
+     synchronized public PubSubMessage getNext() {
+
+        if(TDQ.isEmpty()) {
+            return PubSubMessage.NO_MSG;
+
+        } else if ((System.currentTimeMillis() - TDQ.peek().getTimestamp().getTime()) >= queueDelay){
+
+            return TDQ.poll();
+
+        }
+
         return PubSubMessage.NO_MSG;
+
     }
 
     // return the maximum number of operations
