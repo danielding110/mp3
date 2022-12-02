@@ -1,7 +1,10 @@
 package timedelayqueue;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.stream.Collectors;
+import java.util.*;
 
 // TODO: write a description for this class
 // TODO: complete all methods, irrespective of whether there is an explicit TODO or not
@@ -22,6 +25,8 @@ public class TimeDelayQueue {
     private final int queueDelay;
 
     private int lifetimeMsgCount;
+    //private int totalTime = 0;
+    private int totalOperations = 0;
 
     /**
      * Create a new TimeDelayQueue
@@ -43,6 +48,9 @@ public class TimeDelayQueue {
 
         if(addSuccess) {
             lifetimeMsgCount++;
+            //helpful for task 2
+            //totalTime += msg.getTimestamp().getTime();
+            totalOperations++;
         }
 
         return addSuccess;
@@ -66,6 +74,7 @@ public class TimeDelayQueue {
 
         } else if ((System.currentTimeMillis() - TDQ.peek().getTimestamp().getTime()) >= queueDelay){
 
+            totalOperations++;
             return TDQ.poll();
 
         }
@@ -74,12 +83,37 @@ public class TimeDelayQueue {
 
     }
 
+    /*private int getTotalTime (){
+        return totalTime;
+    }*/
+
     // return the maximum number of operations
     // performed on this TimeDelayQueue over
     // any window of length timeWindow
     // the operations of interest are add and getNext
     public int getPeakLoad(int timeWindow) {
-        return -1;
+
+        List<PubSubMessage> listOfTDQ;
+        List<Long> applicableTDQ;
+
+        int max = 0;
+
+        listOfTDQ = TDQ.stream().sorted(Comparator.comparing(PubSubMessage::getTimestamp)).collect(Collectors.toList());
+
+
+
+        //Collections.sort(arrayOfTDQ);
+
+        for(int i = 0; i < listOfTDQ.size(); i++) {
+            long comprableTDQ = listOfTDQ.get(i).getTimestamp().getTime();
+            applicableTDQ = listOfTDQ.stream().map(j -> j.getTimestamp().getTime()).filter(j -> Math.abs(j-comprableTDQ) <= timeWindow).toList();
+            if(max < applicableTDQ.size()){
+                max = applicableTDQ.size();
+            }
+        }
+        return max;
     }
+
+
 
 }
