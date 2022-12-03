@@ -69,6 +69,19 @@ public class TimeDelayQueue {
     // if there is ni suitable message
      synchronized public PubSubMessage getNext() {
 
+        //Checking and removing expired transient messages
+        PubSubMessage[] array = new PubSubMessage[TDQ.size()];
+        Object[] tempArray = TDQ.toArray(array);
+
+        for(PubSubMessage msg1 : array){
+            if( msg1.isTransient()){
+                if(((TransientPubSubMessage) msg1).getLifetime() + msg1.getTimestamp().getTime() < System.currentTimeMillis()){
+                    TDQ.remove(msg1);
+                }
+            }
+        }
+
+        //Normal getNext stuff
         if(TDQ.isEmpty()) {
             return PubSubMessage.NO_MSG;
 

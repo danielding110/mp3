@@ -18,6 +18,8 @@ public class TransientPubSubMessage extends PubSubMessage {
         this.lifetime = lifetime;
     }
 
+    //public TransientPubSubMessage(UUID sender, UUID receiver, String content);
+
     public int getLifetime() {
         return lifetime;
     }
